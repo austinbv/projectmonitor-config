@@ -1,0 +1,9 @@
+Package: projectmonitor-config
+Source: projectmonitor-config
+Section: unknown
+Priority: extra
+Maintainer: Austin Vance <austinbv@gmail.com>
+Version: 0.1.2
+Architecture: all
+Depends: chromium, x11-xserver-utils, unclutter
+Description: Get some project monitor raspi awesomeness

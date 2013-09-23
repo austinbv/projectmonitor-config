@@ -1,0 +1,74 @@
+#!/bin/bash
+
+if [ $(id -u) -ne 0 ]; then
+  echo "Script must be run as root"
+  exit 1
+fi
+
+PROJECT_MONITOR_URL="http://projectmonitor.sf.pivotallabs.com"
+XPATH="/etc/xdg/lxsession/LXDE/autostart"
+
+
+echo "
+           .:
+          .::
+          ::::
+        .::::::         G.
+        ::::::::       tGG
+         ::::::::      LGG
+          ::::::::    LGGG
+           .:::::::   LGG:
+             ::::::: GGGG        .iitt
+              ::::::,GGGG   :iiiiiiiit
+               ::::.   :Gtiiiiiiitiii
+                 :: fGD tiiiiiiiii
+             iiitt  DDDD tiitti
+         iiiiiiiii tDDDD iii,
+    iiiitiiiiiiiiti DDD  ;
+  tiiiiiiiiiiiiiitG     ::
+  iiiiiiiiiiiiiiiGGLG:LL:::
+  .iiiiiiiiiiiit,GGGGGGL::::
+   tiiiiiiiii,  GGGGGGG  :::
+   iiiiiii;     GGGGGGG
+    itii       GGGGGGGG
+    :         ,GGGGGGGL
+               GGGGGGGG
+               .jGGGGG.
+                  LLGG
+                    GG
+                     .
+"
+
+echo ""
+
+read -ep "Enter the Project Monitor URL ($PROJECT_MONITOR_URL): " input
+PROJECT_MONITOR_URL=${input:-$PROJECT_MONITOR_URL}
+
+read -ep "What tags would you like displayed (ex: boulder sf): " TAGS
+
+JOINED_TAGS=$(echo $TAGS | tr " " ",")
+
+cat <<EOF > $XPATH 
+@lxpanel --profile LXDE
+@pcmanfm --desktop --profile LXDE
+@xset s off
+@xset -dpms
+@xset s noblank
+@chromium --kiosk --incognito $PROJECT_MONITOR_URL?tags=$JOINED_TAGS
+EOF
+
+read -ep "Would you like to setup wifi (y/n): " wifi
+
+if [ "$wifi" == "y" ]; then
+  wicd-curses
+fi
+
+echo "Your done, restarting in 3"
+sleep 3
+
+rm -f /etc/profile.d/run-projectmonitor-config.sh
+sed -i -e 's/# \(.*\) # RPICFG_TO_ENABLE/\1/' -i -e '/\(.*\) # RPICFG_TO_DISABLE/d' /etc/inittab
+update-rc.d lightdm enable 2
+sed /etc/lightdm/lightdm.conf -i -e "s/^#autologin-user=.*/autologin-user=pi/"
+
+reboot
